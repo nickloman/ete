@@ -1020,6 +1020,29 @@ class _RectItem(QGraphicsRectItem):
         _label_painter(self, p, option, widget)
 
 
+class _TriangleItem(QGraphicsPolygonItem):
+    def __init__(self, w, h, bgcolor, fgcolor, label=None):
+        trianglePolygon = QPolygonF()
+        points = [[0, 0], [w, 0.5 * h], [0, h]]
+        for i in points:
+            trianglePolygon.append(QPointF(i[0], i[1]))
+
+        QGraphicsPolygonItem.__init__(self, trianglePolygon)
+        self.label = label
+        #self.setRect(0, 0, w, h)
+        if bgcolor:
+            self.setBrush(QBrush(QColor(bgcolor)))
+        else:
+            self.setBrush(QBrush(Qt.NoBrush))
+        if fgcolor:
+            self.setPen(QPen(QColor(fgcolor)))
+        else:
+            self.setPen(QPen(Qt.NoPen))
+
+    def paint(self, p, option, widget):
+        super(_TriangleItem, self).paint(p, option, widget)
+        _label_painter(self, p, option, widget)
+
 class RectFace(Face):
     """
     .. versionadded:: 2.3
@@ -1030,7 +1053,7 @@ class RectFace(Face):
     label can also be a dict with attributes text, font, color, and fontsize
     color defaults to background color, font to Verdana, fontsize to 12
     """
-    def __init__(self, width, height, fgcolor, bgcolor, label=None):
+    def __init__(self, width, height, fgcolor, bgcolor, label=None, triangle=False):
         Face.__init__(self)
         self.width = width
         self.height = height
@@ -1039,6 +1062,7 @@ class RectFace(Face):
         self.type = "item"
         self.rotable = True
         self.label = label
+        self.triangle = triangle
         if label:
             if not isinstance(label, dict):
                 self.label = {'text' : label}
@@ -1046,7 +1070,10 @@ class RectFace(Face):
                 self.label['color'] = bgcolor
 
     def update_items(self):
-        self.item = _RectItem(self.width, self.height, self.bgcolor, self.fgcolor, label=self.label)
+        if not self.triangle:
+            self.item = _RectItem(self.width, self.height, self.bgcolor, self.fgcolor, label=self.label)
+        else:
+            self.item = _TriangleItem(self.width, self.height, self.bgcolor, self.fgcolor, label=self.label)
 
     def _width(self):
         return self.width
